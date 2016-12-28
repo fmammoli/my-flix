@@ -176,6 +176,7 @@ function downloadSub(url, subtitlePath) {
 }
 
 // Generate hash from file torrent
+//based on https://github.com/alamcordeiro/torrent-subtitle
 function computHashFromTorrentFile (fileTorrent) {
     return new Promise((resolve, reject) => {
       let chunk_size = 65536, // 1024 * 64
