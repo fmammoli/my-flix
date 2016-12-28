@@ -77,9 +77,6 @@ function getMovieFile(torrent) {
 function hashMovie(movieFile) {
     const movieFilePath = path.join(TORRENT_TMP_FOLER, movieFile.path);
     return opensubtitles.extractInfo(movieFilePath)
-    .then(function (infos) {
-        return infos;
-    })
     .catch(err => {
         console.error('problem hasing: '+err)
     })

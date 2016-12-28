@@ -38,9 +38,9 @@ myFlixService.downloadSubtitles(magnetURI)
   console.log("Got subtitles on: %s", subtitle);
   if(argv.c){
     console.log('Starting castnow...this can take a minute');
-    outputToCastNow(magnetURI, subtitle);
+    outputToCastnow(magnetURI, subtitle);
   }else{
     console.log('Starting peerflix on VLC...this can take a minute');
     outputToPeerflix(magnetURI, subtitle);
   }
-})
+}, err => console.error(error));
