@@ -1,114 +1,40 @@
-#!/usr/bin/env node
+
 const args = require('yargs').argv;
 const http = require('http');
 const fs = require('fs');
 const zlib = require('zlib');
 const path = require('path');
-const events = require('events');
-const spawn = require('cross-spawn');
 const WebTorrent = require('webtorrent');
 const OS = require('opensubtitles-api');
 const rimraf = require('rimraf');
 
-const magnetURI = args._[0];
+const defined = require('defined');
 
-const opensubtitlesAPI = new OS({
+//const magnetURI = args._[0];
+
+const opensubtitles = new OS({
     useragent: 'OSTestUserAgentTemp'
 });
 
 const client = new WebTorrent();
 
-const subtitleEmitter = new events.EventEmitter();
+//a module that
+//given a magnetURI or Torrent file
+//returns the download link of an srt
+//or downloads the srt and returns the srt file path.
 
-const subsDestinationFolder = "tmp"+path.sep+"subs";
-const torrentDestinationFolder = "tmp"+path.sep+"torrents";
+//app js
+//call this module
+//get the subtitle path
+//spwan castnow or peerflix process
 
-function downloadSubtitle(subtitle, cb) {
-    if(!subtitle.url) return
-    http.get(subtitle.url, cb);
-}
+//Just find a subtitle
+//receive a magnetURI
+//return the srt url for download
 
-function saveSubtitle(response, subFilePath) {
-    let gunzip = zlib.createGunzip();
-        //complete path of the srt file
-
-    let dest = fs.createWriteStream(subFilePath);
-    response.pipe(gunzip).pipe(dest);
-
-    dest.on('close', function () {
-        response.unpipe(gunzip);
-        response.unpipe(dest);
-        console.log("done!");
-        console.log('Subs saved at: %s', subFilePath);
-        subtitleEmitter.emit("done", subFilePath);
-    });
-}
-
-function destroyTorrent(torrent) {
-    torrent.destroy(function () {
-            console.log('Temporary torrent client finished.');
-            let torrentPath = path.join(torrentDestinationFolder, torrent.name)
-            rimraf(torrentPath, function (res, err) {
-                if (err) {
-                    console.error(err);
-                } else {
-                    console.log('Temporary torrent files deleted successfully.');    
-                }
-            });
-        });
-}
-
-function searchSubtitles(infos, movieName) {
-    return opensubtitlesAPI.search({
-                sublanguageid: 'pob eng',
-                hash: infos.moviehash,
-                filesize: infos.moviebytesize,
-                //path: movieFilePath,
-                filename: movieName,
-                gzip: true
-    }).catch(err => console.error(err));
-}
-
-function downloadRightSubs(subtitles, pathToSave) {
-    let subtitle = {};
-    if (!subtitles) {
-        console.log('no subtitles found')
-        subtitleEmitter.emit('no-subs');
-        return
-    } else {
-        if (!subtitles.pb) {
-            console.log('found no pob subtitles, running in eng subs')
-            subtitle = subtitles.en;
-        } else {
-            subtitle = subtitles.pb;
-        }
-        downloadSubtitle(subtitle, function (response) {
-            saveSubtitle(response, pathToSave);
-        });
-    }
-}
-
-function go() {
-    client.add(magnetURI, {path: torrentDestinationFolder}, function (torrent) {
-
-        let movieFile = biggestFile(torrent.files);
-
-        let movieName = movieFile.name;
-        let currentPath = path.dirname(require.resolve('./'));
-        let movieFilePath = path.join(currentPath, torrentDestinationFolder, movieFile.path);
-        
-        //destroyTorrent(torrent);        
-        opensubtitlesAPI.extractInfo(movieFilePath)
-        .then((infos) => searchSubtitles(infos, movieName))
-        .then((subtitles) => {
-            //fix subfilePath 
-            let subFilePath = subsDestinationFolder + path.sep + movieFile.name + '.srt';
-            subFilePath = subFilePath.split(' ').join('.').toString();
-            downloadRightSubs(subtitles, subFilePath);
-        })
-        .catch(err => console.log(err))
-    });
-}
+let TMP_FOLDER = 'tmp';
+let TORRENT_TMP_FOLER = path.join(TMP_FOLDER, 'torrents');
+let SUBTITLE_TMP_FOLDER = path.join(TMP_FOLDER, 'subs');
 
 function biggestFile(files) {
     const sortedFiles = files.sort(function (a, b) {
@@ -117,32 +43,155 @@ function biggestFile(files) {
     return sortedFiles[0];
 }
 
-subtitleEmitter.on('no-subs', () => {
-    startStreaming(magnetURI);
-})
-subtitleEmitter.on('done', function (subtitle){
-    console.log("subtitle downloaded finished downloading");
-    startStreaming(magnetURI, subtitle);
-});
-
-function startStreaming(magnetLink, subtitle) {
-    console.log('Starting streaming, this can take a while...');
-    
-    console.log('lunching peerflix');
-    let peerflixPath = path.join('.','node_modules','peerflix','app.js')
-    if(subtitle){
-        let currentPath = path.dirname(require.resolve('./'));
-
-        let subtitlePath = path.join(currentPath, subtitle);
-        console.log(subtitlePath);
-        
-        let sp = spawn('node', [peerflixPath, magnetLink, '-d', '-t', subtitlePath, '--vlc'], {
-            stdio: 'inherit'
-        });
-    }else{
-        let sp = spawn('node', [peerflixPath, magnetLink, '-d','--vlc'], {
-            stdio: 'inherit'
-        });
-    }
+function destroyTorrent() {
+    let torrents = client.torrents;
+    let torrentPath = path.join(torrents[0].path, torrents[0].name);
+    rimraf(torrentPath, function (res, err) {
+        if (err) {
+            console.error(err);
+        } else {
+            console.log('Temporary torrent files deleted successfully.');    
+        }
+    });
+    torrents[0].destroy(function () {
+        console.log('Temporary torrent client finished.'); 
+    });
 }
-go();
+
+function startTorrent(magnetURI, torrentPath) {
+    return new Promise(function (resolve, reject) {
+        client.add(magnetURI, {path: torrentPath}, function (torrent, err) {
+            if (err) reject(err);
+            else {
+                resolve(torrent)
+            };
+        })
+    });
+}
+function getMovieFile(torrent) {
+    return new Promise(function (resolve, reject) {
+        let movieFile = biggestFile(torrent.files);
+        resolve(movieFile);
+    });
+}
+function hashMovie(movieFile) {
+    const movieFilePath = path.join(TORRENT_TMP_FOLER, movieFile.path);
+    return opensubtitles.extractInfo(movieFilePath)
+    .then(function (infos) {
+        return infos;
+    })
+    .catch(err => {
+        console.error('problem hasing: '+err)
+    })
+}
+ 
+function searchMovie(infos, movieFile) {
+    return opensubtitles.search({
+        sublanguageid: 'pob eng',
+        hash: infos.moviehash,
+        filesize: infos.moviebytesize,
+        filename: movieFile.name,
+        gzip: true
+    }).catch(err => console.error('Problem searching on OpenSubtitles: '+err));
+}
+function filterSubtitles(subtitles) {
+    return new Promise(function (resolve, reject) {
+        let subtitle = {};
+        if (!subtitles) {
+            console.log('no subtitles found');
+            reject('No subtitles found');
+        } else {
+            if (!subtitles.pb) {
+                subtitle = subtitles.en;
+            } else {
+                subtitle = subtitles.pb;
+            }
+            resolve(subtitle);
+        }
+    }).catch(err => console.error("Problem Filtering Subs: "+err));
+}
+
+function findSubtitles(magnetURI, opt) {
+    return new Promise(function (resolve, reject) {
+        if (!defined(opt)) {
+            opt = {
+                torrentFolder: TORRENT_TMP_FOLER,
+                subtitleFolder: SUBTITLE_TMP_FOLDER,
+                gzip: true
+            }
+        }
+        startTorrent(magnetURI, opt.torrentFolder)
+        .then(getMovieFile)
+        .then(function (movieFile) {
+            return hashMovie(movieFile)
+            .then(infos => searchMovie(infos, movieFile), err => console.error('more up here'))
+            .then(filterSubtitles, err => console.log('up here'))
+            .then(subtitle => {
+                subtitle.movieFileName = movieFile.name;
+                resolve(subtitle);
+            }, err => console.log('here')).catch(err => console.error('Problem!!!: '+err))
+        })       
+        .catch(err => {
+            console.error(err);
+            reject(err);
+        });
+    });
+    //get the has for the torrent file
+    //search on opensub api
+    //return subtitle object
+}
+function removeExt(name) {
+    let a = name.split('.');
+    a.pop();
+    a = a.join('.');
+    return a;
+}
+//Find and download subs
+//receive and magnetURI
+//return the srt file path
+function downloadSubtitles(magnetURI, opt) {
+    return new Promise(function (resolve, reject) {
+        findSubtitles(magnetURI, opt)
+        .then(subtitle => {
+            let subtitleFileName = removeExt(subtitle.movieFileName) + '.srt';
+            let subtitleFilePath = path.join(SUBTITLE_TMP_FOLDER, subtitleFileName);
+            let subtitlePath = subtitleFilePath.split(' ').join('.').toString();
+            return downloadSub(subtitle.url, subtitlePath)
+        })
+        .then(subPath => {
+            const currentPath = path.dirname(require.resolve('./'));
+            const absolutePath = path.join(currentPath, subPath);
+            destroyTorrent();
+            resolve(absolutePath);
+        })
+        .catch(err => {
+            console.error(err);
+            reject(err);
+        })
+    })
+}
+
+function downloadSub(url, subtitlePath) {
+    return new Promise(function (resolve, reject) {
+        http.get(url, function (response) {
+            let gunzip = zlib.createGunzip();
+            let dest = fs.createWriteStream(subtitlePath);
+            dest.on('open', function (data) {
+                response.pipe(gunzip).pipe(dest);    
+            });
+            
+            dest.on('close', function () {
+                response.unpipe(gunzip);
+                response.unpipe(dest);
+                resolve(subtitlePath);
+            });
+        });
+    });
+}
+module.exports = {
+    findSubtitles: findSubtitles,
+    downloadSubtitles: downloadSubtitles
+}
+//downloadSubtitles(args._[0])
+//.then(response => console.log(response))
+//.catch(err => console.error(err))
