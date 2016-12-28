@@ -9,7 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "castnow": "^0.4.17",
     "cross-spawn": "^5.0.1",
+    "defined": "^1.0.0",
     "opensubtitles-api": "^3.4.0",
     "peerflix": "^0.36.1",
     "rimraf": "^2.5.4",
