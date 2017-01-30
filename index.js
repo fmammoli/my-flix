@@ -62,16 +62,18 @@ function getMovieFile(torrent) {
     });
 }
 function hashMovie(movieFile) {
-    const movieFilePath = path.join(TORRENT_TMP_FOLER, movieFile.path);
+    //const movieFilePath = path.join(TORRENT_TMP_FOLER, movieFile.path);
     return hash.computeHashFromTorrentFile(movieFile)
 }
  
-function searchMovie(infos, movieFile) {
+function searchMovie(movieHash, movieFile) {
+    
+    console.log(movieFile.name);
     const movieFilePath = path.join(TORRENT_TMP_FOLER, movieFile.path);
     return opensubtitles.search({
         sublanguageid: 'pob eng',
-        hash: infos.moviehash,
-        filesize: infos.moviebytesize,
+        hash: movieHash,
+        filesize: movieFile.length,
         filename: movieFile.name,
         //path: movieFilePath,
         gzip: true
@@ -107,9 +109,10 @@ function findSubtitles(magnetURI, opt) {
         .then(getMovieFile)
         .then(function (movieFile) {
             return hashMovie(movieFile)
-            .then(infos => searchMovie(infos, movieFile), err => console.error('more up here'))
+            .then(moviehash => searchMovie(moviehash, movieFile), err => console.error('more up here'))
             .then(filterSubtitles, err => console.log('up here'))
             .then(subtitle => {
+                console.log(subtitle);
                 subtitle.movieFileName = movieFile.name;
                 resolve(subtitle);
             }, err => console.log('here')).catch(err => console.error('Problem!!!: '+err))
