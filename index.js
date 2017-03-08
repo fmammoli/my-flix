@@ -122,7 +122,7 @@ function findSubtitles(magnetURI, opt) {
             reject(err);
         });
     });
-    //get the has for the torrent file
+    //get the hash for the torrent file
     //search on opensub api
     //return subtitle object
 }
