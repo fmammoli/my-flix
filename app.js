@@ -33,6 +33,16 @@ function outputToCastnow(magnetLink, subtitle) {
   }
 }
 
+function outputToPeerflixNoSub(magnetLink) {
+  let sp = spawn('node', [peerflixPath, magnetLink, '-d', '--vlc'], {
+      stdio: 'inherit'
+    });
+}
+if (argv.n) {
+  console.log('Streaming with no subs')
+  console.log('Starting peerflix on VLC...this can take a minute');
+  outputToPeerflixNoSub(magnetURI);
+} else {
 myFlixService.downloadSubtitles(magnetURI)
 .then(subtitle => {
   console.log("Got subtitles on: %s", subtitle);
@@ -43,4 +53,5 @@ myFlixService.downloadSubtitles(magnetURI)
     console.log('Starting peerflix on VLC...this can take a minute');
     outputToPeerflix(magnetURI, subtitle);
   }
-}, err => console.error(error));
+}, err => console.error(error));  
+}
