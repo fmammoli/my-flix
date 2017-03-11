@@ -1,5 +1,4 @@
 
-const args = require('yargs').argv;
 const http = require('http');
 const fs = require('fs');
 const zlib = require('zlib');
@@ -45,7 +44,7 @@ function destroyTorrent() {
 
 function startTorrent(magnetURI, torrentPath) {
     return new Promise(function (resolve, reject) {
-        console.log('Downloading necessary movie file bytes...please wait.');
+        console.log('Downloading temporary identification chunks...please wait.');
         client.add(magnetURI, {path: torrentPath}, function (torrent, err) {
             if (err) reject(err);
             else {
@@ -55,22 +54,21 @@ function startTorrent(magnetURI, torrentPath) {
         })
     });
 }
+
 function getMovieFile(torrent) {
-    return new Promise(function (resolve, reject) {
-        let movieFile = biggestFile(torrent.files);
-        resolve(movieFile);
-    });
+    return biggestFile(torrent.files);
 }
+
 function hashMovie(movieFile) {
-    //const movieFilePath = path.join(TORRENT_TMP_FOLER, movieFile.path);
+    console.log('Hashing movie.');
     return hash.computeHashFromTorrentFile(movieFile)
 }
  
 function searchMovie(movieHash, movieFile) {
     const movieFilePath = path.join(TORRENT_TMP_FOLER, movieFile.path);
-    console.log(movieFile.name);
+    console.log('Calling opensubtitles api for: ',movieFile.name);
     return promiseRetry((retry, number) => {
-        console.log('attempt number', number);
+        console.log('Attempt %s of 10', number);
         return opensubtitles.search({
                 sublanguageid: 'pob eng',
                 hash: movieHash,
@@ -79,10 +77,12 @@ function searchMovie(movieHash, movieFile) {
                 //path: movieFilePath,
                 gzip: true
             })
-        .catch(retry)
-    });    
+        .catch( err => {
+            console.error('Error attempting: ', err);
+            retry(err);
+        })
+    });
 }
-
 
 function filterSubtitles(subtitles) {
     return new Promise(function (resolve, reject) {
@@ -112,34 +112,26 @@ function findSubtitles(magnetURI, opt) {
             }
         }
         startTorrent(magnetURI, opt.torrentFolder)
-        .then(getMovieFile)
-        .then(movieFile => {
-            return hashMovie(movieFile)
-            .then(moviehash => searchMovie(moviehash, movieFile), err => console.error('Problem searching on OpenSubtitles: '+err))
-            .then(filterSubtitles, err => {console.log('up here'); reject(err)})
-            .then(subtitle => {
-                subtitle.movieFileName = movieFile.name;
-                resolve(subtitle);
+            .then(torrent => {
+                let movieFile = getMovieFile(torrent);
+                hashMovie(movieFile)
+                    .then(moviehash => {console.log('Movie hashed with success.'); searchMovie(moviehash, movieFile)})
+                    .then(filterSubtitles)
+                    .then(subtitle => {
+                        subtitle.movieFileName = movieFile.name;
+                        resolve(subtitle);
+                    })
+                    .catch(err => {
+                        console.error("Problem!!!: %s", err);
+                        reject(err);
+                    })
             })
-            .catch(err => {
-                console.error("Problem!!!: %s", err);
-                reject(err);
-            })
-        }).catch(err => {
-            console.error("Error: %s", err);
+            .catch(err => reject(err));
+        })
+        .catch(err => {
+            console.error('Problem starting torrent');
             reject(err);
         })
-        // .then(function (movieFile) {
-        //     return hashMovie(movieFile)
-        //     .then(moviehash => searchMovie(moviehash, movieFile), err => console.error('Problem searching for subs'))
-        //     .then(filterSubtitles, err => console.log('up here'))
-        //     .then(subtitle => {
-        //         console.log(subtitle);
-        //         subtitle.movieFileName = movieFile.name;
-        //         resolve(subtitle);
-        //     }, err => console.log('here')).catch(err => console.error('Problem!!!: '+err))
-        // })
-    });
     //get the hash for the torrent file
     //search on opensub api
     //return subtitle object
