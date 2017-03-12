@@ -1,4 +1,9 @@
-
+//Should make this better
+//action has to be
+//1. Webtorrent fetch data from torrent
+//2. Hash the data
+//3. Search hash on opensubtitles api
+//4. Return subtitle file
 const http = require('http');
 const fs = require('fs');
 const zlib = require('zlib');
@@ -123,10 +128,10 @@ function findSubtitles(magnetURI, opt) {
                     })
                     .catch(err => {
                         console.error("Problem!!!: %s", err);
-                        reject(err);
+                        throw err;
                     })
             })
-            .catch(err => reject(err));
+            .catch(err => {throw err});
         })
         .catch(err => {
             console.error('Problem starting torrent');
