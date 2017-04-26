@@ -120,7 +120,7 @@ function findSubtitles(magnetURI, opt) {
             .then(torrent => {
                 let movieFile = getMovieFile(torrent);
                 hashMovie(movieFile)
-                    .then(moviehash => {console.log('Movie hashed with success.'); searchMovie(moviehash, movieFile)})
+                    .then(moviehash => {console.log('Movie hashed with success.'); return searchMovie(moviehash, movieFile)})
                     .then(filterSubtitles)
                     .then(subtitle => {
                         subtitle.movieFileName = movieFile.name;
