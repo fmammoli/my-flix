@@ -9,23 +9,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "castnow": "^0.4.17",
-    "cross-spawn": "^5.0.1",
-    "defined": "^1.0.0",
     "opensubtitles-api": "^3.4.0",
-    "peerflix": "^0.36.1",
-    "promise-retry": "^1.1.1",
-    "rimraf": "^2.5.4",
-    "webtorrent": "^0.98.0",
-    "yarg": "^1.0.8",
-    "yargs": "^6.5.0"
+    "webtorrent": "^0.98.0"
   },
   "devDependencies": {
-    "ava": "^0.18.2",
     "eslint": "^3.12.2",
     "eslint-config-google": "^0.7.1",
     "eslint-config-standard": "^6.2.1",
     "eslint-plugin-promise": "^3.4.0",
-    "eslint-plugin-standard": "^2.0.1"
+    "eslint-plugin-standard": "^2.0.1",
+    "jest": "^19.0.2"
   }
 }
