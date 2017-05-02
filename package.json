@@ -4,7 +4,8 @@
   "description": "a simple cli app for me to watch some series",
   "main": "index.js",
   "scripts": {
-    "test": "ava"
+    "test": "jest",
+    "build": "babel src -d lib"
   },
   "author": "",
   "license": "ISC",
@@ -13,9 +14,13 @@
     "webtorrent": "^0.98.0"
   },
   "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-jest": "^19.0.0",
+    "babel-preset-env": "^1.4.0",
     "eslint": "^3.12.2",
     "eslint-config-google": "^0.7.1",
     "eslint-config-standard": "^6.2.1",
+    "eslint-plugin-jest": "^19.0.1",
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-standard": "^2.0.1",
     "jest": "^19.0.2"

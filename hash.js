@@ -16,7 +16,7 @@ function computeHashFromTorrentFile (fileTorrent) {
           resolve(checksum)
         }).catch(reject)
     })
-  }
+}
 
   // Calculate hex sum between checksuns
 function  sumChecksuns (checksuns, file_size) {
