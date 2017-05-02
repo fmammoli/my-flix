@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "opensubtitles-api": "^3.4.0",
+    "opensubtitles-api": "^3.5.0",
     "webtorrent": "^0.98.0"
   },
   "devDependencies": {
