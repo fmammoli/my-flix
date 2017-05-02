@@ -5,17 +5,11 @@ const opensubtitles = new OS('OSTestUserAgentTemp')
 function search(movie, lang) {
   
   return opensubtitles.search({
-    sublanguageid: 'pb',
+    sublanguageid: (lang === 'pob') ? lang : 'pob,eng',
     hash: movie.hash,
     filesize: movie.filesize,
     filename: movie.filename,
     gzip: true
-  }).then(res => {
-    console.info(res)
-    return res
-  }).catch(err => {
-    console.error(err)
-    throw err
   })
 }
 
