@@ -2,6 +2,7 @@ import createSubSearcher from './subSearcher'
 
 describe('subtitleSearcher', () => {
   it('should search a subtitle on opensubtitle API', () => {
+    //maybe I should mock opensubtitles.search API to responde the subtitle match object 
     const subSearcher = createSubSearcher()
     
     const movie = {

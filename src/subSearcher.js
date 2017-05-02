@@ -1,3 +1,4 @@
+//TODO retry the search, but maybe in the seek part not here
 import OS from 'opensubtitles-api'
 
 const opensubtitles = new OS('OSTestUserAgentTemp')
