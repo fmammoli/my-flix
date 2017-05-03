@@ -1,6 +1,7 @@
 import createSubSearcher from './subSearcher'
 
 describe('subtitleSearcher', () => {
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000
   it('should search a subtitle on opensubtitle API', () => {
     //maybe I should mock opensubtitles.search API to responde the subtitle match object 
     const subSearcher = createSubSearcher()
@@ -29,5 +30,23 @@ describe('subtitleSearcher', () => {
       .then(subtitles => {
         expect(subtitles.pb.lang).toMatch('pb')
       })
+  })
+  test('should filter the response', () => {
+    const movie = {
+      hash: 'b7173e5f05c29947',
+      filesize: '924410044',
+      filename: 'filename'
+    }
+    const lang = 'pob'
+
+    const subSearcher = createSubSearcher()
+
+    return subSearcher.search(movie, lang)
+    .then(subtitles => {
+      return subSearcher.filter(subtitles, lang)
+      .then(subtitle => {
+        expect(subtitle.lang).toMatch('pb')
+      })
+    })
   })
 })

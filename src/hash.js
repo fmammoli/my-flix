@@ -9,45 +9,78 @@
 import fs from 'fs'
 
 //Compute the opensubtitles api Hash from file path
-function computeHashFromPath (filePath) {
+function computeHashFromPath (filePath, torrentFileSize) {
   return new Promise((resolve, reject) => {
     let chunk_size = 65536 // 1024 * 64
     let length_bytes = 131072 // chunk_size * 2
+    //stat is givin problems, going to remove it
+    //o lance aqui é usar o fs.stat pra ver se o arquivo existe só,
+    //e o usar o length do torrent file pra fazer as contas
+    let startStream = fs.createReadStream(filePath, {start: 0, end: length_bytes - 1})
+    let endStream = fs.createReadStream(filePath, {start: (torrentFileSize - chunk_size), end: torrentFileSize})
 
-    let fileSize = new Promise((resolve, reject) => {
-      fs.stat(filePath, (err, stat) => {
-        err ? reject(err) : resolve(stat.size)
+    Promise.all([checksumStream(startStream, length_bytes), checksumStream(endStream, length_bytes)])
+      .then((checksuns) => {
+        let checksum = sumChecksuns(checksuns, torrentFileSize)
+        resolve(checksum)
+      }).catch(err => {
+        console.error('Error on creating stream from movie file')
+        reject(err)
       })
-    })
-    fileSize.then(file_size => {
-      let startStream = fs.createReadStream(filePath, {start: 0, end: length_bytes - 1})
-      let endStream = fs.createReadStream(filePath, {start: (file_size - chunk_size), end: file_size})
-
-      Promise.all([checksumStream(startStream, length_bytes), checksumStream(endStream, length_bytes)])
-        .then((checksuns) => {
-          let checksum = sumChecksuns(checksuns, file_size)
-          resolve(checksum)
-        }).catch(reject)
-    })
   })
 }
-//Compute the opensubtitles api Hash from an file object
-// function computeHashFromTorrentFile (file) {
+
+// //Compute the opensubtitles api Hash from file path
+// function computeHashFromPath (filePath, torrentFileSize) {
 //   return new Promise((resolve, reject) => {
-//     let chunk_size = 65536, // 1024 * 64
-//       file_size = file.length,
-//       length_bytes = 131072 // chunk_size * 2
+//     let chunk_size = 65536 // 1024 * 64
+//     let length_bytes = 131072 // chunk_size * 2
 
-//     let startStream = file.createReadStream({start: 0, end: length_bytes - 1}),
-//       endStream = file.createReadStream({start: (file_size - chunk_size), end: file_size})
+//     let fileSize = new Promise((resolve, reject) => {
+//       fs.stat(filePath, (err, stat) => {
+//         err ? reject(err) : resolve(stat.size)
+//       })
+//     })
+//     //stat is givin problems, going to remove it
+//     //o lance aqui é usar o fs.stat pra ver se o arquivo existe só,
+//     //e o usar o length do torrent file pra fazer as contas
+//     fileSize.then(file_size => {
+//       if(!torrentFileSize) torrentFileSize = file_size
+//       console.info(file_size)
+//       let startStream = fs.createReadStream(filePath, {start: 0, end: length_bytes - 1})
+//       let endStream = fs.createReadStream(filePath, {start: (torrentFileSize - chunk_size), end: torrentFileSize})
 
-//     Promise.all([checksumStream(startStream, length_bytes), checksumStream(endStream, length_bytes)])
-//       .then((checksuns) => {
-//         let checksum = sumChecksuns(checksuns, file_size)
-//         resolve(checksum)
-//       }).catch(reject)
+//       Promise.all([checksumStream(startStream, length_bytes), checksumStream(endStream, length_bytes)])
+//         .then((checksuns) => {
+//           let checksum = sumChecksuns(checksuns, torrentFileSize)
+//           resolve(checksum)
+//         }).catch(err => {
+//           console.error('Error on creating stream from movie file')
+//           reject(err)
+//         })
+//     }).catch(err => {
+//       console.error('error on filestat')
+//       reject(err)
+//     })
 //   })
 // }
+//Compute the opensubtitles api Hash from an file object
+function computeHashFromTorrentFile (file) {
+  return new Promise((resolve, reject) => {
+    let chunk_size = 65536 // 1024 * 64
+    let file_size = file.length
+    let length_bytes = 131072 // chunk_size * 2
+
+    let startStream = file.createReadStream({start: 0, end: length_bytes - 1})
+    let endStream = file.createReadStream({start: (file_size - chunk_size), end: file_size})
+
+    Promise.all([checksumStream(startStream, length_bytes), checksumStream(endStream, length_bytes)])
+       .then((checksuns) => {
+         let checksum = sumChecksuns(checksuns, file_size)
+         resolve(checksum)
+       }).catch(reject)
+  })
+}
 
   // Calculate hex sum between checksuns
 function  sumChecksuns (checksuns, file_size) {
@@ -80,7 +113,10 @@ function checksumStream (stream, defaultsize) {
       Buffer.concat(bufs).copy(buffer)
       let checksum = checksumBuffer(buffer, 16)
       resolve(checksum)
-    }).on('error', reject)
+    }).on('error', err => {
+      console.log(stream.start)
+      reject(err)
+    })
   })
 }
 
@@ -130,6 +166,6 @@ function padLeft (str, c, length) {
 }
 
 module.exports = {
-  //computeHash: computeHashFromTorrentFile
+  computeHashFromTorrentFile: computeHashFromTorrentFile,
   computeHash: computeHashFromPath
 }

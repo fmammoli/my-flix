@@ -1,23 +1,39 @@
 import createSubSeeker from './subseeker'
+import rimraf from 'rimraf'
 
 describe('SubSeeker', () => {
-  it('should seek a Subtitle', () => {
-    // const subSeeker = createSubSeeker()
-    // console.info(subSeeker)
-    // subSeeker.seek('magnetURI','lang')
-    // expect(subSeeker.seek()).toBeCalled()
-  })
-  it('should return a subtitle object', () => {
-    // const subtitle = {
-    //   movieName: 'movieName',
-    //   fileName: 'fileName',
-    //   filePath: 'filePath',
-    //   lang: 'lang',
-    //   downloadLink: 'downloadLink'
-    // }
-    // const subSeeker = createSubSeeker()
-    // return subSeeker.seek('magnetURI', 'lang').then(subtitle => {
-    //   expect(subtitle).toMatchObject(subtitle)
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000
+  beforeAll(() => {
+    // rimraf('./tmp/torrents', (res, err) => {
+    //   if(err) console.error(err)
     // })
+  })
+  test('should find a subtitle', () => {
+    const subseeker = createSubSeeker()
+    const magnetURI = 'magnet:?xt=urn:btih:0ed0e0d76f86360d63cd73d11b8f1a703b8b988f&dn=Star.Wars.Rebels.S03E11.HDTV.x264-BATV%5Bettv%5D&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Fzer0day.ch%3A1337&tr=udp%3A%2F%2Fopen.demonii.com%3A1337&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Fexodus.desync.com%3A6969'
+    const lang = 'pob'
+  
+    //subseeker.findSubtitle object response
+    const subtitleMatch = { 
+      movie: {
+        filename: 'Star.Wars.Rebels.S03E11.HDTV.x264-BATV[ettv].mkv',
+        filesize: 137941440,
+        filepath: 'tmp\\torrents\\Star.Wars.Rebels.S03E11.HDTV.x264-BATV[ettv]\\Star.Wars.Rebels.S03E11.HDTV.x264-BATV[ettv].mkv',
+      },      
+      subtitle: {
+        url: 'http://dl.opensubtitles.org/en/download/src-api/vrf-19ca0c5b/sid-SXCCDSZ-Vr4p-weytDEvWMgb1Te/filead/1955426936.gz',
+        lang: 'pb',
+        langName: 'Portuguese (BR)',
+        subName: 'Star.Wars.Rebels.S03E11.720p.HDTV.x264-BATV.srt'
+      }
+    }
+    
+    return subseeker.findSubtitle(magnetURI, lang)
+      .then(response => {
+        return subseeker.clear().then(() =>{
+          expect(response.subtitle.subName).toMatch('Star.Wars.Rebels.S03E11.720p.HDTV.x264-BATV.srt')
+          expect(response.subtitle.lang).toMatch('pb')
+        })
+      })
   })
 })

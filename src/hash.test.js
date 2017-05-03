@@ -1,12 +1,15 @@
 import Hash from './hash'
+import path from 'path'
 
 describe('hash', () =>{
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000
   it('should hash a file', () => {    
     //looks like the test thing start looking at root, not relative
-    const moviepath = './tmp/torrents/Star.Wars.Rebels.S03E19.Twin.Suns.1080p.WEB-DL.DD5.1.H.264-YFN/Star.Wars.Rebels.S03E19.Twin.Suns.1080p.WEB-DL.DD5.1.AAC2.0.H.264-YFN.mkv'
-    return Hash.computeHash(moviepath)
+    const moviepath = path.join('testfile','breakdance.avi')
+    const moviesize = 12909756
+    return Hash.computeHash(moviepath, moviesize)
     .then(hash => {
-      expect(hash).toMatch('b7173e5f05c29947')
-    })
+      expect(hash).toMatch('8e245d9679d31e12')
+    }).catch(err => console.error(err))
   })
 })
