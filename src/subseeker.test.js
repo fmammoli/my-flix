@@ -1,8 +1,11 @@
 import createSubSeeker from './subseeker'
 import rimraf from 'rimraf'
+import fs from 'fs'
 
 describe('SubSeeker', () => {
+  
   jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000
+  
   beforeAll(() => {
     // rimraf('./tmp/torrents', (res, err) => {
     //   if(err) console.error(err)
@@ -10,7 +13,8 @@ describe('SubSeeker', () => {
   })
   test('should find a subtitle', () => {
     const subseeker = createSubSeeker()
-    const magnetURI = 'magnet:?xt=urn:btih:0ed0e0d76f86360d63cd73d11b8f1a703b8b988f&dn=Star.Wars.Rebels.S03E11.HDTV.x264-BATV%5Bettv%5D&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Fzer0day.ch%3A1337&tr=udp%3A%2F%2Fopen.demonii.com%3A1337&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Fexodus.desync.com%3A6969'
+    const magnetURI = 'magnet:?xt=urn:btih:3db80e9fe85fd3e41771a94a7f81e96599f54eef&dn=Star.Wars.Rebels.S03E12.HDTV.x264-RBB%5Bstate%5D&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Fzer0day.ch%3A1337&tr=udp%3A%2F%2Fopen.demonii.com%3A1337&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Fexodus.desync.com%3A6969'
+    //const magnetURI = 'magnet:?xt=urn:btih:0ed0e0d76f86360d63cd73d11b8f1a703b8b988f&dn=Star.Wars.Rebels.S03E11.HDTV.x264-BATV%5Bettv%5D&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Fzer0day.ch%3A1337&tr=udp%3A%2F%2Fopen.demonii.com%3A1337&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Fexodus.desync.com%3A6969'
     const lang = 'pob'
   
     //subseeker.findSubtitle object response
@@ -36,4 +40,21 @@ describe('SubSeeker', () => {
         })
       })
   })
+
+  // test.skip('should save subtitle file', () => {
+  //   const subseeker = createSubSeeker()
+  //   const magnetURI = 'magnet:?xt=urn:btih:3db80e9fe85fd3e41771a94a7f81e96599f54eef&dn=Star.Wars.Rebels.S03E12.HDTV.x264-RBB%5Bstate%5D&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Fzer0day.ch%3A1337&tr=udp%3A%2F%2Fopen.demonii.com%3A1337&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Fexodus.desync.com%3A6969'
+  //   const lang = 'pob'
+    
+  //   return subseeker.findSubtitle(magnetURI, lang)
+  //     .then(subseeker.saveSubtitle)
+  //     .then(subPath => {
+  //       fs.stat(subPath, (err, stats) => {
+  //         return subseeker.clear(() => {
+  //           expect(err).toBeNull()
+  //           expect(stats.size).toBeGreaterThan(0)
+  //         })
+  //       })
+  //     })
+  // })
 })

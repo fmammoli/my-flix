@@ -4,7 +4,7 @@ import rimraf from 'rimraf'
 
 const TMP_FOLDER = 'tmp'
 const TORRENT_TMP_FOLER = path.join(TMP_FOLDER, 'torrents')
-const SUBTITLE_TMP_FOLDER = path.join(TMP_FOLDER, 'subs')
+
 
 const client = new WebTorrent()
 
