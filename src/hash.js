@@ -22,6 +22,9 @@ function computeHashFromPath (filePath, torrentFileSize) {
     Promise.all([checksumStream(startStream, length_bytes), checksumStream(endStream, length_bytes)])
       .then((checksuns) => {
         let checksum = sumChecksuns(checksuns, torrentFileSize)
+        //this is problably not cool,
+        startStream.destroy()
+        endStream.destroy()
         resolve(checksum)
       }).catch(err => {
         console.error('Error on creating stream from movie file')
