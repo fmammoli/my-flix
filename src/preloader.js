@@ -21,6 +21,7 @@ function getMovie(magnetURI) {
   return new Promise((resolve, reject) => {
     startTorrent(magnetURI)
     .then(torrent => {
+      console.info('loooo')
       const moviefile = torrent.files.reduce((a,b) => (a.length > b.length) ? a : b)
       const movie = {
         filename: moviefile.name,

@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "build": "babel src -d lib"
+    "build": "babel src --out-dir lib"
+  },
+  "jest": {
+    "verbose": true
   },
   "author": "",
   "license": "ISC",

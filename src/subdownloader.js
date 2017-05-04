@@ -6,13 +6,14 @@ function download(url, desPath) {
   return new Promise((resolve, reject) => {
     http.get(url, res => {
       const gunzip = zlib.createGunzip()
-      let dest = fs.createReadStream(desPath)
+      let dest = fs.createWriteStream(desPath)
       dest.on('open', () => res.pipe(gunzip).pipe(dest))
       dest.on('close', () => {
         res.unpipe(dest)
         res.unpipe(gunzip)
-        resolve(dest)
+        resolve(desPath)
       })
+      dest.on('error', err => reject(err))
     })
   })
 }
